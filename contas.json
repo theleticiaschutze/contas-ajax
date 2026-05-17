@@ -1,20 +1,14 @@
 {
-    "1": {
-        "codigo": "101",
-        "favorecido": "Conta 01",
-        "vencimento": "2026-05-20",
-        "valor": "350.00"
+    "4": {
+        "codigo": "104",
+        "favorecido": "Conta 04",
+        "vencimento": "2026-06-12",
+        "valor": "100.00"
     },
-    "2": {
-        "codigo": "102",
-        "favorecido": "Conta 02",
-        "vencimento": "2026-05-22",
-        "valor": "85.00"
-    },
-    "3": {
-        "codigo": "103",
-        "favorecido": "Conta 03",
-        "vencimento": "2026-06-01",
-        "valor": "129.90"
+    "5": {
+        "codigo": "105",
+        "favorecido": "eu mesmo",
+        "vencimento": "2026-05-18",
+        "valor": "202"
     }
 }

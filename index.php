@@ -11,7 +11,7 @@ if ($acao == 'inserir') {  //se acao for inserir
         "codigo"     => $_POST['codigo'],
         "favorecido"     => $_POST['favorecido'],
         "vencimento" => $_POST['vencimento'],
-        "valor"    => $_POST['valor']
+        "valor"    => str_replace(',', '.', $_POST['valor'])
     ];
     file_put_contents($dados, json_encode($contas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     header("Location: index.php?status=sucesso");
@@ -22,7 +22,7 @@ if ($acao == 'inserir') {  //se acao for inserir
     $contas[$id]['codigo']     = $_POST['codigo'];
     $contas[$id]['favorecido']     = $_POST['favorecido'];
     $contas[$id]['vencimento'] = $_POST['vencimento'];
-    $contas[$id]['valor']    = $_POST['valor'];                
+    $contas[$id]['valor']    = str_replace(',', '.', $_POST['valor']);                
     file_put_contents($dados, json_encode($contas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     header("Location: index.php?status=atualizado");
     exit;
@@ -34,6 +34,16 @@ if ($acao == 'inserir') {  //se acao for inserir
     header("Location: index.php?status=removido");
     exit;
 }
+
+$contaModificar = null;
+if ($acao == 'modificar' && isset($_GET['id'])) {
+    $id = $_GET['id'];
+    if (isset($contas[$id])){
+        $contaModificar = $contas[$id];
+        $contaModificar['_id'] = $id;
+    }
+}
+
     
     
     ?>
@@ -47,43 +57,71 @@ if ($acao == 'inserir') {  //se acao for inserir
 </head>
 <body>
 
-<div class="container" style="max-width: 900px">
-<h1 class="my-4"> Registro de contas a pagar</h1> 
+<div class="container mt-4" style="max-width: 1200px">
+<h1 class="my-4 text-center"> Registro de contas a pagar</h1>
 
+<?php $status = $_GET['status'] ?? ''; ?>
+
+<?php if ($status === 'sucesso') { ?>
+    <div class="alert alert-success alert-dismissible fade show">
+        Conta foi registrada!!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php } elseif ($status === 'atualizado') { ?>
+    <div class="alert alert-info alert-dismissible fade show">
+        Conta foi atualizada!!!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php } elseif ($status === 'removido') { ?>
+    <div class="alert alert-warning alert-dismissible fade show">
+        Conta foi removida.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php } ?>
+
+    <div class="row">
+    <div class="col-lg-4 mb-4">
+<!-- Formulário 4/12 -->
 <form method="post" action="index.php">
-    <input type="hidden" name="acao" value="inserir" id="campo-acao">
-    <input type="hidden" name="id" id="campo-id">           
+    <input type="hidden" name="acao" value="<?= $contaModificar ? 'atualizar' : 'inserir' ?>">
+    <input type="hidden" name="id" value="<?= $contaModificar['_id'] ?? '' ?>">           
         <!--form para inserir e atualizar a tabela-->
-        <div class="card shadow-sm p-3 mb-4">                 
-                    <div class="row g-2 align-items-end">
-                    <div class="col-12 col-md">
+        
+        <div class="card shadow-sm p-3">             
+                    
+                    <div class="mb-3">
                         <label for="codigo">Código:</label>
-                        <input type="text" name="codigo" id="codigo" class="form-control" required autofocus>
+                        <input type="text" name="codigo" id="codigo" class="form-control" required autofocus
+                            value="<?= $contaModificar['codigo'] ?? '' ?>">
                     </div> 
-                    <div class="col-12 col-md">
+                    <div class="mb-3">
                         <label for="favorecido">Favorecido:</label>
-                        <input type="text" name="favorecido" id="favorecido" class="form-control" required>
+                        <input type="text" name="favorecido" id="favorecido" class="form-control" required
+                            value="<?= $contaModificar['favorecido'] ?? '' ?>">
                     </div>    
-                    <div class="col-12 col-md">
+                    <div class="mb-3">
                         <label for="vencimento">Vencimento:</label>
-                        <input type="text" name="vencimento" id="vencimento" class="form-control" required>
+                        <input type="date" name="vencimento" id="vencimento" class="form-control" required
+                            value="<?= $contaModificar['vencimento'] ?? '' ?>">
                     </div>
-                    <div class="col-12 col-md">
+                    <div class="mb-3">
                         <label for="valor">Valor:</label>
-                        <input type="text" name="valor" id="valor" class="form-control" required>
+                        <input type="text" name="valor" id="valor" class="form-control" placeholder="00.00" step="0.01" required
+                            value="<?= $contaModificar['valor'] ?? '' ?>">
                     </div>
-                    <div class="col-12 col-md-auto">
+                    <div class="d-grid gap-2 mt-4">
                         <button type="submit" class="btn btn-success">Salvar Conta</button>                                              
                     </div>                    
+        </div>      
+                </form>
         </div>
-        </div>
-        </form>
 
 
-<!-- Tabela que mostra contas, falta deixar bonitnha com bootstrap!!!!!!!!!!!!!!!!-->
-    <div class="table-responsive">
-        <table class="table mt-4" id="tabela-toda"> 
-            <thead class="table-light">
+ <!-- tabela 8/12 -->
+    <div class="col-lg-8">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="tabela-toda"> 
+                        <thead class="table-light">
                 <tr>
                     <th scope="col">Código</th>
                     <th scope="col">Favorecido</th>
@@ -93,18 +131,18 @@ if ($acao == 'inserir') {  //se acao for inserir
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($contas as $id => $conta): ?>
+                <?php foreach ($contas as $id => $conta){ ?>
         <tr>
             <td><?= $conta['codigo'] ?></td>
             <td><?= $conta['favorecido'] ?></td>
             <td><?= $conta['vencimento'] ?></td>
-            <td><?= $conta['valor'] ?></td>
+            <td>R$ <?= number_format($conta['valor'], 2, ',', '.') ?></td>
             <td>
                 <a href="?acao=modificar&id=<?= $id ?>">Modificar</a>
                 <a href="?acao=remover&id=<?= $id ?>" onclick="return confirm('Deseja remover?')">Remover</a>
             </td>
         </tr>
-    <?php endforeach; ?>                       
+    <?php } ?>                       
             </tbody>
             <?php
             $total = array_sum(array_column($contas, 'valor'));
@@ -116,13 +154,16 @@ if ($acao == 'inserir') {  //se acao for inserir
                 </tr>
             </tfoot>
         </table>
-    </div>    
+     </div>  
+     </div>
+    </div>
+</div>
 
 
 
 
 
-    
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>   
 </body>
 </html>
 

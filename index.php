@@ -5,17 +5,7 @@ $contas = json_decode(file_get_contents($dados), true) ?? []; //decodifica para 
 
 $acao = $_POST['acao'] ?? $_GET['acao'] ?? ''; //pode usar get ou post para acao, ou vazio
 
-if ($acao == 'inserir') {  //se acao for inserir
-    //validar se não tem outro codigo igual
-    $codigoNovo = $_POST['codigo'];
-    $codigosExistentes = array_column($contas, 'codigo');
-
-    //mensagem de erro 
-    if (in_array($codigoDigitado, $codigosExistentes)) {
-       header("Location: index.php?status=erro_duplicado");
-        exit;
-    } else {
-        // sem duplicidade grava normalmente
+if ($acao == 'inserir') {  //se acao for inserir  
         $adicionarId = empty($contas) ? 1 : max(array_keys($contas)) + 1; //se for vazio começa de 1, se tiver id adiciona mais 1
         $contas[$adicionarId] = [ //id é chave do objeto    
             "codigo"     => $_POST['codigo'],
@@ -26,17 +16,9 @@ if ($acao == 'inserir') {  //se acao for inserir
         file_put_contents($dados, json_encode($contas, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         header("Location: index.php?status=sucesso");
         exit;
-    }
+    
 
 } else if ($acao == 'atualizar') { //se acao for atualizar
-    //validar se não tem outro codigo igual também
-    $codigoNovo = $_POST['codigo'];
-    $codigosExistentes = array_column($contas, 'codigo');
-    if (in_array($codigoNovo, $codigosExistentes)) {
-        header("Location: index.php?status=erro_duplicado");
-        exit;
-    }
-
     $id = $_POST['id'];  //esse retorna e continua o mesmo
     $contas[$id]['codigo']     = $_POST['codigo'];
     $contas[$id]['favorecido']     = $_POST['favorecido'];
@@ -96,11 +78,11 @@ if ($acao == 'modificar' && isset($_GET['id'])) {
             echo    'Conta foi removida.';
             echo    '<button type="button" class="btn-close" onclick="this.parentElement.classList.add(\'invisible\')"></button>';
             echo'</div>';
-        } elseif ($status === 'erro_duplicado') { //esse se colocou duplicado
-            echo '<div class="alert alert-warning alert-dismissible fade show">';
-            echo    'Erro: Este código já existe, insira um código diferente.';
-            echo    '<button type="button" class="btn-close" onclick="this.parentElement.classList.add(\'invisible\')"></button>';
-            echo '</div>';
+        //} elseif ($status === 'erro_duplicado') { //esse se colocou duplicado
+        //    echo '<div class="alert alert-warning alert-dismissible fade show">';
+        //    echo    'Erro: Este código já existe, insira um código diferente.';
+        //    echo    '<button type="button" class="btn-close" onclick="this.parentElement.classList.add(\'invisible\')"></button>';
+        //    echo '</div>';
         } else {  // alerta nvisivel para tela não ficar mexendo, com a classe 'invisible'
             echo '<div class="alert alert-dismissible invisible">';
             echo    '&nbsp;'; 
@@ -119,6 +101,9 @@ if ($acao == 'modificar' && isset($_GET['id'])) {
                         <label for="codigo">Código:</label>
                         <input type="text" name="codigo" id="codigo" class="form-control" required autofocus
                             value="<?= $contaModificar['codigo'] ?? '' ?>">
+                            <div class="invalid-feedback">
+                                Código já cadastrado!
+                            </div>
                     </div> 
                     <div class="mb-3">
                         <label for="favorecido">Favorecido:</label>
@@ -188,5 +173,31 @@ if ($acao == 'modificar' && isset($_GET['id'])) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>   
+    <script>
+        //aqui vamos fazer checagem de código duplicado para cadastro código JS, dependemos do bootstrap para invalid-feedback e etc
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const acao = document.querySelector('input[name="acao"]').value;
+
+            if (acao == 'atualizar') {
+                return;
+            }
+
+            const codigoDigitado = document.getElementById('codigo').value;
+            const codigosNaTabela = [...document.querySelectorAll('tbody td:first-child')]
+                .map(td => td.textContent.trim());
+
+            if (codigosNaTabela.includes(codigoDigitado)) {
+                e.preventDefault();
+                document.getElementById('codigo').classList.add('is-invalid');
+            }
+        });
+
+        //tirar erro ao digitar novamente
+        document.getElementById('codigo').addEventListener('input', function(){
+            this.classList.remove('is-invalid');
+        })
+
+        </script>
+    
 </body>
 </html>

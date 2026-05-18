@@ -224,6 +224,13 @@ if ($acao == 'modificar' && isset($_GET['id'])) {
         new bootstrap.Modal(document.getElementById('modalRemover')).show();
         }
 
+        //remove status ex sucesso para o próximo refresh não repetir a mensagem
+        if (window.location.search.includes('status=')) {
+            const url = new URL(window.location.href);
+             url.searchParams.delete('status');
+            window.history.replaceState({}, '', url);
+        }   
+
         </script>
     
 </body>

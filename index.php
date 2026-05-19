@@ -221,13 +221,23 @@ if ($acao == 'modificar' && isset($_GET['id'])) {
         document.querySelector('form').addEventListener('submit', function(e) {
             const acao = document.querySelector('input[name="acao"]').value;
 
-            if (acao == 'atualizar') {
-                return;
-            }
-
             const codigoDigitado = document.getElementById('codigo').value;
             const codigosNaTabela = [...document.querySelectorAll('tbody td:first-child')]
                 .map(td => td.textContent.trim());
+
+            if (acao == 'atualizar') {
+                const codigoOriginal = "<?= $contaModificar['codigo'] ?? '' ?>";
+    
+            // se o codigo não mudar salva
+            if (codigoDigitado === codigoOriginal) return;
+    
+            // se mudou, checa se o novo já existe
+            if (codigosNaTabela.includes(codigoDigitado)) {
+                e.preventDefault();
+                 document.getElementById('codigo').classList.add('is-invalid');
+                }
+            return;
+            }            
 
             if (codigosNaTabela.includes(codigoDigitado)) {
                 e.preventDefault();
